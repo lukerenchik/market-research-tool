@@ -27,6 +27,7 @@ Thumbs.db
 
 # Test Scripts
 test_fmp.py
+file_generator.py
 
 # Egg info
 *.egg-info/

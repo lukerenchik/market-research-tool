@@ -22,8 +22,12 @@ class FMPProvider():
     async def get_company_employee_count(self, ticker: str) -> dict:
         return await self._get(f"employee-count", params={"symbol": ticker})
 
+    '''
+    This is a calculated/derived value, not needed, I will create my own relationships.
+
     async def get_stock_peer_comparison(self, ticker: str) -> dict:
         return await self._get(f"stock-peers", params={"symbol": ticker})
+    '''
 
     async def get_company_historical_employee_count(self, ticker: str) -> dict:
         return await self._get(f"historical-employee-count", params={"symbol": ticker})
@@ -52,6 +56,8 @@ class FMPProvider():
     async def get_stock_quote(self, ticker: str) -> dict:
         return await self._get(f"quote", params={"symbol": ticker})
 
+    async def close(self):
+        await self.client.aclose()
 
  #List of interesting endpoints:
 
