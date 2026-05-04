@@ -1,7 +1,7 @@
 {
   "company_profile": [
     {
-      "symbol": "AAPL",
+      "symbol": "AAPL", 
       "price": 280.14,
       "marketCap": 4112763354000,
       "beta": 1.0646569,
