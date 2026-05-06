@@ -47,10 +47,6 @@ CREATE TABLE tickers (
     id                  SERIAL PRIMARY KEY,
     symbol              VARCHAR(10) NOT NULL UNIQUE,
     company_name        VARCHAR(255),
-    -- Do I need to know what exchange they are listed on? Seems like its completely trivial information. (Remove)
-    exchange            VARCHAR(50),
-    -- Description doesn't provide anything meaningful, if a company is interesting research will be necessary. (Remove)
-    description         TEXT,
 
     -- GICS classification (explicit at every level for query simplicity)
     sector_id           INTEGER REFERENCES gics_sectors(id),
@@ -59,7 +55,6 @@ CREATE TABLE tickers (
     sub_industry_id     INTEGER REFERENCES gics_sub_industries(id),
 
     is_active           BOOLEAN DEFAULT TRUE,
-    -- I think this is here so that I can retire a stock in the future, not immediately useful. (Keep)
     created_at          TIMESTAMPTZ DEFAULT NOW(),
     updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
@@ -73,18 +68,9 @@ CREATE INDEX idx_tickers_industry ON tickers(industry_id);
 -- COMPANY SNAPSHOTS (Slow-changing, re-fetch periodically)
 -- ============================================================
 
-CREATE TABLE company_profiles (
-    id              SERIAL PRIMARY KEY,
-    ticker_id       INTEGER NOT NULL REFERENCES tickers(id),
-    fetched_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+-- This seems like most of this data is going to be found elsewhere, lets keep a tab on it and see
+-- If this data fetch is really necessary.
 
-    price           NUMERIC,
-    market_cap      BIGINT,
-    price_range     VARCHAR(50),    -- FMP returns this as a string e.g. "142.53-198.23"
-    employee_count  INTEGER,
-
-    raw             JSONB           -- full FMP profile payload
-);
 
 CREATE INDEX idx_company_profiles_ticker ON company_profiles(ticker_id);
 
@@ -109,7 +95,9 @@ SELECT create_hypertable(
     if_not_exists => TRUE
 );
 
-
+-- TODO: prices are currently unadjusted
+-- corporate actions (splits, mergers) not yet handled
+-- revisit
 -- ============================================================
 -- DAILY MARKET DATA (High-frequency time-series)
 -- ============================================================
@@ -119,11 +107,7 @@ CREATE TABLE stock_quotes (
     ticker_id           INTEGER NOT NULL REFERENCES tickers(id),
 
     price               NUMERIC,
-    change_percentage   NUMERIC,
-    year_high           NUMERIC,
-    year_low            NUMERIC,
     market_cap          BIGINT,
-    price_avg_200       NUMERIC,
 
     raw                 JSONB
 );
@@ -192,10 +176,7 @@ CREATE TABLE balance_sheets (
     inventory                   NUMERIC,
     short_term_debt             NUMERIC,
     total_current_liabilities   NUMERIC,
-    long_term_debt              NUMERIC,
     total_liabilities           NUMERIC,
-    retained_earnings           NUMERIC,
-    net_debt                    NUMERIC,
 
     raw                         JSONB
 );
@@ -218,8 +199,6 @@ CREATE TABLE cash_flow_statements (
 
     net_income              NUMERIC,
     accounts_receivables    NUMERIC,
-    net_change_in_cash      NUMERIC,
-    cash_at_end_of_period   NUMERIC,
     operating_cash_flow     NUMERIC,
     free_cash_flow          NUMERIC,
 
@@ -246,16 +225,11 @@ CREATE TABLE key_metrics (
     period                      VARCHAR(10),
     fiscal_year                 SMALLINT,
 
-    -- S tier
     return_on_invested_capital  NUMERIC,
     free_cash_flow_yield        NUMERIC,
     ev_to_free_cash_flow        NUMERIC,
     income_quality              NUMERIC,
     cash_conversion_cycle       NUMERIC,
-
-    -- A tier
-    return_on_assets            NUMERIC,
-    net_debt_to_ebitda          NUMERIC,
 
     raw                         JSONB
 );
@@ -277,11 +251,8 @@ CREATE TABLE financial_ratios (
     fiscal_year             SMALLINT,
 
     gross_profit_margin     NUMERIC,
-    ebitda_margin           NUMERIC,
     net_profit_margin       NUMERIC,
     inventory_turnover      NUMERIC,
-    price_to_earnings       NUMERIC,
-    debt_to_assets          NUMERIC,
 
     raw                     JSONB
 );
@@ -303,10 +274,7 @@ CREATE TABLE income_growth (
     fiscal_year                 SMALLINT,
 
     growth_revenue              NUMERIC,
-    growth_cost_of_revenue      NUMERIC,
     growth_gross_profit         NUMERIC,
-    growth_gross_profit_ratio   NUMERIC,
-    growth_ebitda               NUMERIC,
     growth_net_income           NUMERIC,
 
     raw                         JSONB
