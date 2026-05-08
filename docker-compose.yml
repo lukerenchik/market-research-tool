@@ -1,0 +1,14 @@
+# docker-compose.yml
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescaledb
+    ports:
+      - "6543:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+
+volumes:
+  timescaledb_data:

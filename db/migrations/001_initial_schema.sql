@@ -12,28 +12,28 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 CREATE TABLE gics_sectors (
     id          SERIAL PRIMARY KEY,
-    code        CHAR(2) NOT NULL UNIQUE,    -- e.g. '10'
-    name        VARCHAR(100) NOT NULL UNIQUE -- e.g. 'Energy'
+    code        TEXT NOT NULL UNIQUE,    -- e.g. '10'
+    name        TEXT NOT NULL UNIQUE -- e.g. 'Energy'
 );
 
 CREATE TABLE gics_industry_groups (
     id          SERIAL PRIMARY KEY,
-    code        CHAR(4) NOT NULL UNIQUE,    -- e.g. '1010'
-    name        VARCHAR(100) NOT NULL,
+    code        TEXT NOT NULL UNIQUE,    -- e.g. '1010'
+    name        TEXT NOT NULL,
     sector_id   INTEGER NOT NULL REFERENCES gics_sectors(id)
 );
 
 CREATE TABLE gics_industries (
     id              SERIAL PRIMARY KEY,
-    code            CHAR(6) NOT NULL UNIQUE, -- e.g. '101010'
-    name            VARCHAR(100) NOT NULL,
+    code            TEXT NOT NULL UNIQUE, -- e.g. '101010'
+    name            TEXT NOT NULL,
     industry_group_id INTEGER NOT NULL REFERENCES gics_industry_groups(id)
 );
 
 CREATE TABLE gics_sub_industries (
     id              SERIAL PRIMARY KEY,
-    code            CHAR(8) NOT NULL UNIQUE, -- e.g. '10101010'
-    name            VARCHAR(100) NOT NULL,
+    code            TEXT NOT NULL UNIQUE, -- e.g. '10101010'
+    name            TEXT NOT NULL,
     description     TEXT,
     industry_id     INTEGER NOT NULL REFERENCES gics_industries(id)
 );
@@ -45,8 +45,8 @@ CREATE TABLE gics_sub_industries (
 
 CREATE TABLE tickers (
     id                  SERIAL PRIMARY KEY,
-    symbol              VARCHAR(10) NOT NULL UNIQUE,
-    company_name        VARCHAR(255),
+    symbol              TEXT NOT NULL UNIQUE,
+    company_name        TEXT,
 
     -- GICS classification (explicit at every level for query simplicity)
     sector_id           INTEGER REFERENCES gics_sectors(id),
@@ -70,9 +70,6 @@ CREATE INDEX idx_tickers_industry ON tickers(industry_id);
 
 -- This seems like most of this data is going to be found elsewhere, lets keep a tab on it and see
 -- If this data fetch is really necessary.
-
-
-CREATE INDEX idx_company_profiles_ticker ON company_profiles(ticker_id);
 
 
 -- ============================================================
@@ -145,12 +142,11 @@ CREATE INDEX idx_historical_market_cap_ticker ON historical_market_cap(ticker_id
 CREATE TABLE income_statements (
     time            TIMESTAMPTZ NOT NULL,   -- period end date
     ticker_id       INTEGER NOT NULL REFERENCES tickers(id),
-    period          VARCHAR(10),            -- 'Q1', 'Q2', 'Q3', 'Q4', 'FY'
+    period          TEXT,            -- 'Q1', 'Q2', 'Q3', 'Q4', 'FY'
     fiscal_year     SMALLINT,
 
     revenue         NUMERIC,
     gross_profit    NUMERIC,
-    ebitda          NUMERIC,
     net_income      NUMERIC,
 
     raw             JSONB
@@ -169,7 +165,7 @@ CREATE INDEX idx_income_statements_ticker ON income_statements(ticker_id, time D
 CREATE TABLE balance_sheets (
     time                        TIMESTAMPTZ NOT NULL,
     ticker_id                   INTEGER NOT NULL REFERENCES tickers(id),
-    period                      VARCHAR(10),
+    period                      TEXT,
     fiscal_year                 SMALLINT,
 
     cash_and_short_term         NUMERIC,
@@ -194,7 +190,7 @@ CREATE INDEX idx_balance_sheets_ticker ON balance_sheets(ticker_id, time DESC);
 CREATE TABLE cash_flow_statements (
     time                    TIMESTAMPTZ NOT NULL,
     ticker_id               INTEGER NOT NULL REFERENCES tickers(id),
-    period                  VARCHAR(10),
+    period                  TEXT,
     fiscal_year             SMALLINT,
 
     net_income              NUMERIC,
@@ -222,7 +218,7 @@ CREATE INDEX idx_cash_flow_ticker ON cash_flow_statements(ticker_id, time DESC);
 CREATE TABLE key_metrics (
     time                        TIMESTAMPTZ NOT NULL,
     ticker_id                   INTEGER NOT NULL REFERENCES tickers(id),
-    period                      VARCHAR(10),
+    period                      TEXT,
     fiscal_year                 SMALLINT,
 
     return_on_invested_capital  NUMERIC,
@@ -247,7 +243,7 @@ CREATE INDEX idx_key_metrics_ticker ON key_metrics(ticker_id, time DESC);
 CREATE TABLE financial_ratios (
     time                    TIMESTAMPTZ NOT NULL,
     ticker_id               INTEGER NOT NULL REFERENCES tickers(id),
-    period                  VARCHAR(10),
+    period                  TEXT,
     fiscal_year             SMALLINT,
 
     gross_profit_margin     NUMERIC,
@@ -270,7 +266,7 @@ CREATE INDEX idx_financial_ratios_ticker ON financial_ratios(ticker_id, time DES
 CREATE TABLE income_growth (
     time                        TIMESTAMPTZ NOT NULL,
     ticker_id                   INTEGER NOT NULL REFERENCES tickers(id),
-    period                      VARCHAR(10),
+    period                      TEXT,
     fiscal_year                 SMALLINT,
 
     growth_revenue              NUMERIC,
