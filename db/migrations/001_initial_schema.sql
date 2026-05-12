@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 -- Approved, Now the question becomes, how do I populate these?
 
-CREATE TABLE gics_sectors (
+CREATE TABLE IF NOT EXISTS gics_sectors (
     id          SERIAL PRIMARY KEY,
     code        TEXT NOT NULL UNIQUE,    -- e.g. '10'
     name        TEXT NOT NULL UNIQUE -- e.g. 'Energy'
