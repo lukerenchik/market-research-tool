@@ -1,5 +1,5 @@
 import json
-from market_intelligence.ingestion.stock_source.ticker_import import normalize_ticker_row
+from market_intelligence.ingestion.normalizers.ticker_import import normalize_ticker_row
 from market_intelligence.storage.gics_repository import GICSRepository
 from market_intelligence.storage.ticker_repository import TickerRepository
 
