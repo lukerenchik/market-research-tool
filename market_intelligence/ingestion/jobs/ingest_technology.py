@@ -93,8 +93,12 @@ async def ingest_technology():
         for row in tickers:
             ticker_id = row["id"]
             symbol    = row["symbol"]
-            print(f"Ingesting {symbol} (API calls so far: {call_counter[0]})...")
 
+            if await already_ingested(ticker_id, conn):
+                print(f"Skipping {symbol} — already ingested")
+                continue
+
+            print(f"Ingesting {symbol} (API calls so far: {call_counter[0]})...")
             succeeded, errors = await ingest_ticker(
                 ticker_id, symbol, provider, conn, call_counter
             )
@@ -111,6 +115,13 @@ async def ingest_technology():
         print(f"\nErrors ({len(total_errors)}):")
         for err in total_errors:
             print(f"  ✗ {err}")
+
+async def already_ingested(ticker_id: int, conn: asyncpg.Connection) -> bool:
+    row = await conn.fetchrow(
+        "SELECT 1 FROM stock_quotes WHERE ticker_id = $1 LIMIT 1",
+        ticker_id
+    )
+    return row is not None
 
 
 asyncio.run(ingest_technology())

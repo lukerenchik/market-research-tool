@@ -1,14 +1,35 @@
+from subprocess import call
 from typing import Any
 import httpx
+import asyncio
+import time
 
 FMP_BASE_URL = "https://financialmodelingprep.com/stable/"
 
+class RateLimiter:
+    def __init__(self, calls_per_minute: int):
+        self.calls_per_minute = calls_per_minute
+        self.min_interval = 60.0 / calls_per_minute
+        self.last_call_time = 0.0
+        self._lock = asyncio.Lock()
+
+    async def acquire(self):
+        async with self._lock:
+            now = time.monotonic()
+            elapsed = now - self.last_call_time
+            wait = self.min_interval - elapsed
+            if wait > 0:
+                await asyncio.sleep(wait)
+            self.last_call_time = time.monotonic()
+
 class FMPProvider():
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, calls_per_minute: int = 300):
         self.api_key = api_key
         self.client = httpx.AsyncClient(base_url=FMP_BASE_URL, timeout=30.0)
+        self.rate_limiter = RateLimiter(calls_per_minute)
 
     async def _get(self, endpoint: str, params: dict = None) -> Any:
+        await self.rate_limiter.acquire()
         params = params or {}
         params["apikey"] = self.api_key
         response = await self.client.get(endpoint, params=params)
@@ -55,28 +76,3 @@ class FMPProvider():
     async def close(self):
         await self.client.aclose()
 
- #List of interesting endpoints:
-
-'''
-Company and Reference Data:
-- Company Profile Data - DONE
-- Company Employee Count - Untested
-- Stock Peer Comparison - Untested
-- Company Historical Employee Count - Untested
-- Company Historical Market Cap - Untested
-
-
-Fundamentals:
-- Financial Statements:
--- Income Statement
--- Balance Sheet Statement
--- cash Flow Statement
--- Key Metrics
--- Financial Ratios
--- Income Statement Growth
-
-Quote:
-- Stock Quote
-
-
-'''
