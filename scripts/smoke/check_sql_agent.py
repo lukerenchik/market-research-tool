@@ -1,4 +1,4 @@
-# tests/test_sql_agent.py
+# scripts/smoke/check_sql_agent.py
 import asyncio
 import os
 import asyncpg

@@ -1,4 +1,4 @@
-# tests/test_sentinel.py
+# scripts/smoke/check_sentinel.py
 import asyncio
 import os
 import json
