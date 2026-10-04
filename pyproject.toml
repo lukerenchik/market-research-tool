@@ -3,11 +3,43 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fusa-tool"
+name = "market-intelligence"
 version = "0.1.0"
+description = "Async ETL pipeline and LLM agents for S&P 500 fundamentals, backed by PostgreSQL/TimescaleDB"
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "asyncpg",
+    "anthropic",
     "httpx",
+    "pandas",
     "pydantic",
     "python-dotenv",
+]
+
+[project.optional-dependencies]
+# Only needed by scripts/backfill_historical_prices.py
+backfill = [
+    "yfinance",
+]
+# The HTTP API under market_intelligence/api is a work-in-progress stub
+api = [
+    "fastapi",
+]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+]
+
+[tool.setuptools.packages.find]
+include = ["market_intelligence*"]
+
+[tool.setuptools.package-data]
+market_intelligence = ["agents/*.md", "agents/*.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "integration: needs a live PostgreSQL/TimescaleDB (set TEST_DATABASE_URL)",
 ]

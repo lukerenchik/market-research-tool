@@ -6,6 +6,7 @@ env/
 # Environment variables
 .env
 .env.*
+!.env.example
 
 # Python cache
 __pycache__/
@@ -31,3 +32,6 @@ file_generator.py
 
 # Egg info
 *.egg-info/
+
+# Test / tooling caches
+.pytest_cache/

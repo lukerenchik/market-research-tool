@@ -1,4 +1,7 @@
 # docker-compose.yml
+#
+#   docker compose up -d timescaledb          # database only
+#   docker compose --profile jobs run --rm ingest   # run the daily refresh job
 services:
   timescaledb:
     image: timescale/timescaledb:latest-pg16
@@ -7,9 +10,25 @@ services:
     ports:
       - "6543:5432"
     environment:
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     volumes:
       - timescaledb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  ingest:
+    build: .
+    profiles: ["jobs"]
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      # Inside the compose network the database listens on 5432.
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-password}@timescaledb:5432/postgres
 
 volumes:
   timescaledb_data:
